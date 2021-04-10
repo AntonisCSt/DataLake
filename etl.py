@@ -8,24 +8,29 @@ from pyspark.sql.functions import year, month, dayofmonth, hour, weekofyear, dat
 from pyspark.sql.types import StringType, IntegerType, StructType, StructField,FloatType
 from pyspark.sql import SQLContext
 
-#config = configparser.ConfigParser()
-#config.read('dl.cfg')
+config = configparser.ConfigParser()
+config.read('dl.cfg')
 
 #Get our AWS parameters needed for getting the data for S3
-#os.environ['AWS_ACCESS_KEY_ID']=config['AWS_ACCESS_KEY_ID']
-#os.environ['AWS_SECRET_ACCESS_KEY']=config['AWS_SECRET_ACCESS_KEY']
-
-
+os.environ['AWS_ACCESS_KEY_ID']=config['AWS']['AWS_ACCESS_KEY_ID']
+os.environ['AWS_SECRET_ACCESS_KEY']=config['AWS']['AWS_SECRET_ACCESS_KEY']
 
 def create_spark_session():
     """
         Function that creates and returns a spark session
     """
+   # spark = SparkSession \
+   #    .builder \
+    #    .config("spark.jars.packages", "org.apache.hadoop:hadoop-aws:3.2.0") \
+    #    .getOrCreate()
+    
     spark = SparkSession \
         .builder \
-        .config("spark.jars.packages", "org.apache.hadoop:hadoop-aws:2.7.0") \
+        .appName("Data Wrangling with Spark SQL") \
+       	.config("spark.jars.packages", "org.apache.hadoop:hadoop-aws:2.7.0") \
         .getOrCreate()
     return spark
+
 
 
 def process_song_data(spark, input_data, output_data):
@@ -163,14 +168,27 @@ def process_log_data(spark, input_data, output_data):
 def main():
     spark = create_spark_session()
     #datasource for local song_data file (in case of AWS connection this will be the S3 bucket!)
-    input_data = 'data/song_data/*/*/*/*.json'
+    
+    #Input for local (uncomment if you want to use)
+    #input_data = 'data/song_data/*/*/*/*.json'
+    
+    #Input for whole S3 bucket  (uncomment if you want to use)
+    #input_data = 's3a://udacity-dend/song_data/*/*/*/*.json'
+    
+    #Input for part of S3 bucket
+    input_data = 's3a://udacity-dend/song_data/A/A/*/*.json'
     output_data = 'data/outputs/song_data'
     
     process_song_data(spark, input_data, output_data)
     
     #datasource for local log_data file (in case of AWS connection this will be the S3 bucket!)
-    input_data = 'data/logs_data/*.json'
-    output_data= 'data/outputs/log_data'
+    
+    #Input for local (uncomment if you want to use)
+    #input_data = 'data/logs_data/*.json'
+    
+    #Input for  S3 bucket
+    input_data =  's3a://udacity-dend/log-data/*/*/*.json'
+    output_data = 'data/outputs/log_data'
     
     process_log_data(spark, input_data, output_data)
 
