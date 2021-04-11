@@ -70,7 +70,8 @@ def process_song_data(spark, input_data, output_data):
 
     # extract columns to create artists table
     artists_table = df.select(col("artist_id"),col("artist_name"),col("artist_location"),col("artist_latitude"),col("artist_longitude"))
-    
+    # drop duplicates
+    artists_table = artists_table.drop_duplicates(subset=['artist_id'])
     # write artists table to parquet files
     artists_table = artists_table.write.partitionBy('artist_id').parquet(os.path.join(output_data, 'artists.parquet'), 'overwrite')
     print("artists_table partitioned!")
@@ -102,6 +103,8 @@ def process_log_data(spark, input_data, output_data):
 
     # extract columns for users table    
     users_table = df[ 'userId', 'firstName' , 'lastName' ,'gender', 'level'] 
+    #drop duplicates
+    users_table = users_table.drop_duplicates(subset=['userId'])
     
     # write users table to parquet files
     users_table = users_table.write.partitionBy('userId').parquet(os.path.join(output_data, 'users.parquet'), 'overwrite')
